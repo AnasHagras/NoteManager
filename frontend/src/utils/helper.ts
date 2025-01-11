@@ -1,29 +1,22 @@
 import { TreeNode } from "../models/tree";
 
-// Helper function to find a node by ID
 const findNodeById = (tree: TreeNode[], id: string): TreeNode | null => {
   for (const node of tree) {
     if (node.id === id) {
-      return node; // Found the node
+      return node;
     }
     if (node.children) {
-      const foundChild = findNodeById(node.children, id); // Recursively search in children
+      const foundChild = findNodeById(node.children, id);
       if (foundChild) {
-        return foundChild; // Return if found in children
+        return foundChild;
       }
     }
   }
-  return null; // Node not found
+  return null;
 };
 
 export { findNodeById };
 
-/**
- * Helper function to get the breadcrumb path to a node by ID.
- * @param tree - The tree structure to search in.
- * @param id - The ID of the target node.
- * @returns An array of nodes representing the path to the target node.
- */
 export const getPathToNode = (tree: TreeNode[], id: string): TreeNode[] => {
   const findPath = (
     nodes: TreeNode[],
@@ -31,18 +24,18 @@ export const getPathToNode = (tree: TreeNode[], id: string): TreeNode[] => {
     path: TreeNode[]
   ): TreeNode[] | null => {
     for (const node of nodes) {
-      const newPath = [...path, node]; // Add the current node to the path
+      const newPath = [...path, node];
       if (node.id === targetId) {
-        return newPath; // Return the path if we found the node
+        return newPath;
       }
       if (node.children) {
-        const childPath = findPath(node.children, targetId, newPath); // Search in children
+        const childPath = findPath(node.children, targetId, newPath);
         if (childPath) {
-          return childPath; // Return if a path is found
+          return childPath;
         }
       }
     }
-    return null; // Return null if no path is found
+    return null;
   };
 
   return findPath(tree, id, []) || [];
@@ -67,15 +60,15 @@ export const findNextNode = (tree: TreeNode[], id: string): TreeNode | null => {
   const findNext = (nodes: TreeNode[]): TreeNode | null => {
     for (const node of nodes) {
       if (found) {
-        return node; // Return the next node once the current node is found
+        return node;
       }
       if (node.id === id) {
-        found = true; // Mark the node as found
+        found = true;
       }
       if (node.children) {
-        const nextNode = findNext(node.children); // Recursively search in children
+        const nextNode = findNext(node.children);
         if (nextNode) {
-          return nextNode; // Return the found next node from children
+          return nextNode;
         }
       }
     }
@@ -93,11 +86,11 @@ export const findPrevNode = (tree: TreeNode[], id: string): TreeNode | null => {
   ): TreeNode | null => {
     for (const node of nodes) {
       if (node.id === id) {
-        return prevNode; // Return the previous node when the target node is found
+        return prevNode;
       }
-      prevNode = node; // Track the last node as the previous node
+      prevNode = node;
       if (node.children) {
-        const prev = findPrev(node.children, node); // Recurse into children and pass the current node as the parent
+        const prev = findPrev(node.children, node);
         if (prev) {
           return prev;
         }

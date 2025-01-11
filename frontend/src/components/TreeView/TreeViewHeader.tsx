@@ -22,7 +22,6 @@ const TreeViewHeader: React.FC<TreeViewHeaderProps> = ({
   onCollapseAll,
   loading,
 }) => {
-  // Check if all nodes are collapsed
   const allCollapsed = isCollapsedAll(tree);
 
   return (

@@ -27,16 +27,16 @@ const NodeActions: React.FC<NodeActionsProps> = ({
   onAddNote,
   onRename,
 }) => {
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null); // For menu anchor position
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const openMenu = (event: MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget); // Set anchor to the button clicked
-    setIsMenuOpen(true); // Open the menu
+    setAnchorEl(event.currentTarget);
+    setIsMenuOpen(true);
   };
 
   const closeMenu = () => {
-    setAnchorEl(null); // Close the menu
+    setAnchorEl(null);
     setIsMenuOpen(false);
   };
 
@@ -54,17 +54,15 @@ const NodeActions: React.FC<NodeActionsProps> = ({
     } else if (action === "addNote") {
       onAddNote();
     }
-    closeMenu(); // Close the menu after performing the action
+    closeMenu();
   };
 
   return (
     <>
-      {/* Show three dots menu that triggers the dropdown */}
       <IconButton onClick={openMenu} disableRipple>
         <MoreVertIcon fontSize="small" />
       </IconButton>
 
-      {/* Menu for actions */}
       <Menu
         anchorEl={anchorEl}
         open={isMenuOpen}
@@ -78,10 +76,10 @@ const NodeActions: React.FC<NodeActionsProps> = ({
               borderRadius: "8px",
               boxShadow: 2,
               minWidth: 180,
-              position: "fixed", // Ensure it doesn’t shift relative to other elements
-              top: "10px", // Adjust the vertical position based on your design
-              left: "50%", // Horizontal positioning
-              transform: "translateX(-50%)", // Center the menu
+              position: "fixed",
+              top: "10px",
+              left: "50%",
+              transform: "translateX(-50%)",
             },
           },
         }}
@@ -89,7 +87,6 @@ const NodeActions: React.FC<NodeActionsProps> = ({
           timeout: 200,
         }}
       >
-        {/* Render actions based on node type */}
         {node.type === "folder" ? (
           <>
             <MenuItem
@@ -98,9 +95,9 @@ const NodeActions: React.FC<NodeActionsProps> = ({
               sx={{
                 display: "flex",
                 alignItems: "center",
-                padding: "8px 16px", // Consistent padding to prevent shifting
+                padding: "8px 16px",
                 "&:hover": {
-                  backgroundColor: "#f0f0f0", // Light gray background on hover
+                  backgroundColor: "#f0f0f0",
                 },
               }}
             >
@@ -113,9 +110,9 @@ const NodeActions: React.FC<NodeActionsProps> = ({
               sx={{
                 display: "flex",
                 alignItems: "center",
-                padding: "8px 16px", // Consistent padding to prevent shifting
+                padding: "8px 16px",
                 "&:hover": {
-                  backgroundColor: "#f0f0f0", // Light gray background on hover
+                  backgroundColor: "#f0f0f0",
                 },
               }}
             >
@@ -128,9 +125,9 @@ const NodeActions: React.FC<NodeActionsProps> = ({
               sx={{
                 display: "flex",
                 alignItems: "center",
-                padding: "8px 16px", // Consistent padding to prevent shifting
+                padding: "8px 16px",
                 "&:hover": {
-                  backgroundColor: "#f0f0f0", // Light gray background on hover
+                  backgroundColor: "#f0f0f0",
                 },
               }}
             >
@@ -143,9 +140,9 @@ const NodeActions: React.FC<NodeActionsProps> = ({
               sx={{
                 display: "flex",
                 alignItems: "center",
-                padding: "8px 16px", // Consistent padding to prevent shifting
+                padding: "8px 16px",
                 "&:hover": {
-                  backgroundColor: "#f0f0f0", // Light gray background on hover
+                  backgroundColor: "#f0f0f0",
                 },
               }}
             >
@@ -161,9 +158,9 @@ const NodeActions: React.FC<NodeActionsProps> = ({
               sx={{
                 display: "flex",
                 alignItems: "center",
-                padding: "8px 16px", // Consistent padding to prevent shifting
+                padding: "8px 16px",
                 "&:hover": {
-                  backgroundColor: "#f0f0f0", // Light gray background on hover
+                  backgroundColor: "#f0f0f0",
                 },
               }}
             >
@@ -176,9 +173,9 @@ const NodeActions: React.FC<NodeActionsProps> = ({
               sx={{
                 display: "flex",
                 alignItems: "center",
-                padding: "8px 16px", // Consistent padding to prevent shifting
+                padding: "8px 16px",
                 "&:hover": {
-                  backgroundColor: "#f0f0f0", // Light gray background on hover
+                  backgroundColor: "#f0f0f0",
                 },
               }}
             >

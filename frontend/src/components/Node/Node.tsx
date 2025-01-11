@@ -38,7 +38,7 @@ const Node: React.FC<NodeProps> = ({
   viewDown,
   ...props
 }) => {
-  const [newTitle, setNewTitle] = useState(node.title); // State to manage the new title
+  const [newTitle, setNewTitle] = useState(node.title);
   const textFieldRef = useRef<HTMLInputElement>(null);
   const isFolder = node.type === "folder";
 

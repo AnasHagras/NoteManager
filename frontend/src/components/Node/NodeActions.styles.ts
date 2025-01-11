@@ -1,7 +1,6 @@
 import { Button, Box } from "@mui/material";
 import { styled } from "@mui/system";
 
-// Container for actions inside the modal
 export const NodeActionsContainer = styled(Box)({
   display: "flex",
   flexDirection: "column",
@@ -9,12 +8,11 @@ export const NodeActionsContainer = styled(Box)({
   padding: "10px",
 });
 
-// Button style for actions (collapse, remove, add child, etc.)
 export const ActionButton = styled(Button)<{ color?: "primary" | "secondary" }>(
   ({ color }) => ({
     margin: "10px 0",
     padding: "10px 15px",
-    width: "100%", // Ensure the button fills the container's width
+    width: "100%",
     textAlign: "center",
     backgroundColor:
       color === "primary"
@@ -33,7 +31,6 @@ export const ActionButton = styled(Button)<{ color?: "primary" | "secondary" }>(
   })
 );
 
-// Style for collapse arrow
 export const CollapseArrow = styled("span")<{ isCollapsed?: boolean }>(
   ({ isCollapsed }) => ({
     display: "inline-block",
