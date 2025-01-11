@@ -103,10 +103,7 @@ function TreeView() {
         setLastOpenedNote(JSON.parse(storedTree).lastOpenedNoteId);
         setLastOpenedEditId(JSON.parse(storedTree).lastOpenedEditId);
       } else {
-        const defaultTree: TreeNode[] = [
-          { id: "1", title: "Root", type: "folder", children: [] },
-          { id: "2", title: "Another Root", type: "folder", children: [] },
-        ];
+        const defaultTree: TreeNode[] = [];
         setTree(defaultTree);
       }
       setLoading(false);
