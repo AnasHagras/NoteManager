@@ -4,6 +4,9 @@ import { TreeNode } from "../models/tree";
 
 type TreeState = {
   tree: TreeNode[];
+  message: string | null;
+  messageType: string | null;
+  clearMessages: () => void;
   addNode: (parentId: string | null, node: TreeNode) => void;
   removeNode: (id: string) => void;
   setTree: (newTree: TreeNode[]) => void;
@@ -12,16 +15,11 @@ type TreeState = {
 const localStorageAdapter = {
   getItem: (name: string) => {
     const item = localStorage.getItem(name);
-    console.log(
-      "Loaded tree from localStorage:",
-      item ? JSON.parse(item)["tree"] : "Still No"
-    );
     return item ? JSON.parse(item)["tree"] : { tree: [] };
   },
   setItem: (name: string, value: { state: TreeState }) => {
-    const treeState = value.state;
-    console.log("Saving tree to localStorage:", treeState);
-    localStorage.setItem(name, JSON.stringify(treeState));
+    const { tree } = value.state;
+    localStorage.setItem(name, JSON.stringify({ tree }));
   },
   removeItem: (name: string) => {
     localStorage.removeItem(name);
@@ -32,44 +30,52 @@ export const useTreeStore = create<TreeState>()(
   persist(
     (set) => ({
       tree: [],
+      message: null,
+      messageType: null,
       addNode: (parentId, node) =>
         set((state) => {
-          console.log("Adding node:", node);
           const addChild = (nodes: TreeNode[]): TreeNode[] => {
             return nodes.map((n) =>
               n.id === parentId
-                ? {
-                    ...n,
-                    children: [...(n.children || []), node],
-                  }
-                : {
-                    ...n,
-                    children: addChild(n.children || []),
-                  }
+                ? { ...n, children: [...(n.children || []), node] }
+                : { ...n, children: addChild(n.children || []) }
             );
           };
 
-          const isFolder = node.type === "folder";
           const parentNode = parentId
             ? findNodeById(state.tree, parentId)
             : null;
 
           if (parentNode) {
+            const isFolder = node.type === "folder";
             if (isFolder && parentNode.type === "note") {
-              console.error("Folders cannot be added under notes.");
-              return { tree: state.tree };
+              return {
+                tree: state.tree,
+                message: "Folders cannot be added under notes.",
+                messageType: "error",
+              };
             }
             if (node.type === "note" && parentNode.type === "note") {
-              console.error("Notes cannot be added under other notes.");
-              return { tree: state.tree };
+              return {
+                tree: state.tree,
+                message: "Notes cannot be added under other notes.",
+                messageType: "error",
+              };
             }
           }
 
           const updatedTree = parentId
-            ? { tree: addChild(state.tree) }
-            : { tree: [...state.tree, node] };
+            ? {
+                tree: addChild(state.tree),
+                message: "Node added successfully!",
+                messageType: "success",
+              }
+            : {
+                tree: [...state.tree, node],
+                message: "Node added successfully!",
+                messageType: "success",
+              };
 
-          console.log("Updated tree:", updatedTree.tree);
           return updatedTree;
         }),
       removeNode: (id) =>
@@ -79,17 +85,23 @@ export const useTreeStore = create<TreeState>()(
               .filter((n) => n.id !== id)
               .map((n) => ({ ...n, children: removeChild(n.children || []) }));
 
-          const updatedTree = { tree: removeChild(state.tree) };
+          const updatedTree = {
+            tree: removeChild(state.tree),
+            message: "Node removed successfully!",
+            messageType: "success",
+          } as TreeState;
 
-          console.log("Updated tree after removal:", updatedTree.tree);
           return updatedTree;
         }),
       setTree: (newTree) => {
-        set(() => {
-          const updatedTree = { tree: newTree };
-          console.log("Updated tree after setting:", updatedTree.tree);
-          return updatedTree;
-        });
+        set(() => ({
+          tree: newTree,
+          message: "Tree updated successfully!",
+          messageType: "success",
+        }));
+      },
+      clearMessages: () => {
+        set(() => ({ message: null, messageType: null }));
       },
     }),
     {

@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useEffect, useState } from "react";
 import { useTreeStore } from "../store";
 import { TreeNode } from "../models/tree";
+import { toast } from "react-toastify"; // Import the toast module
 
 interface TreeViewProps {
   selectedNodeId: string | null;
@@ -13,13 +15,16 @@ function TreeView({
   setSelectedNodeId,
   addNode,
 }: TreeViewProps) {
-  const { tree, removeNode, setTree } = useTreeStore((state) => state);
+  const { tree, removeNode, setTree, message, messageType, clearMessages } =
+    useTreeStore((state) => state);
   const [loading, setLoading] = useState<boolean>(true);
 
+  // Function to remove a node
   function handleRemoveNode(id: string) {
     removeNode(id);
   }
 
+  // Function to update the tree
   const updateTree = () => {
     const storedTree = localStorage.getItem("tree-storage");
 
@@ -41,6 +46,18 @@ function TreeView({
     updateTree();
   }, []);
 
+  useEffect(() => {
+    if (message) {
+      if (messageType === "success") {
+        toast.success(message);
+      } else if (messageType === "error") {
+        toast.error(message);
+      }
+      clearMessages();
+    }
+  }, [message]);
+
+  // Function to add a new node
   function handleAddNewNode(parentId: string | null) {
     const newNode: TreeNode = {
       id: `${Date.now()}`,
@@ -51,6 +68,7 @@ function TreeView({
     addNode(parentId, newNode);
   }
 
+  // Recursive function to render the tree nodes
   function renderTree(nodes: TreeNode[]) {
     return (
       <ul>

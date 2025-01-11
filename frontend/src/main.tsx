@@ -3,6 +3,8 @@ import { ThemeProvider } from "@mui/material/styles";
 import theme from "./styles/theme";
 import App from "./App";
 import "./index.css";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"; // Import Toastify's CSS
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -10,6 +12,7 @@ const root = ReactDOM.createRoot(
 
 root.render(
   <ThemeProvider theme={theme}>
+    <ToastContainer />
     <App />
   </ThemeProvider>
 );
