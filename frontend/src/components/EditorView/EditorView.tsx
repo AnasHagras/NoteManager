@@ -32,14 +32,16 @@ const EditorView: React.FC = () => {
   );
 
   useEffect(() => {
-    console.log(lastOpenedEditId, lastOpenedNoteId, node?.id);
+    if (!lastOpenedEditId) {
+      setNode(undefined);
+      return;
+    }
     const nodeHere = findNodeById(tree, lastOpenedNoteId || "");
     if (nodeHere?.type !== "note" && node) {
       return;
     }
     const newNode = findNodeById(tree, lastOpenedEditId || "");
     if (newNode?.id !== node?.id) {
-      console.log("Loading new node" + newNode?.id);
       setLoading(true);
     }
     setTimeout(() => {

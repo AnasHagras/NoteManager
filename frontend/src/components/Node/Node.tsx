@@ -43,7 +43,6 @@ const Node: React.FC<NodeProps> = ({
   const isFolder = node.type === "folder";
 
   const handleRename = () => {
-    console.log("handleRename : ", isEditing, newTitle, node.title);
     if (isEditing && newTitle !== node.title) {
       onEdit(node.id, newTitle || "");
     }
@@ -51,14 +50,12 @@ const Node: React.FC<NodeProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Handle renaming (Enter to save, F2 to edit)
     if (e.key === "Enter") {
-      handleRename(); // Save on Enter
+      handleRename();
     } else if (e.key === "F2") {
-      setEditingNodeId(node.id); // Set the node into editing mode on F2
+      setEditingNodeId(node.id);
     }
 
-    // Handle navigation (ArrowUp/ArrowDown)
     if (e.key === "ArrowUp") {
       viewUp();
     } else if (e.key === "ArrowDown") {
@@ -67,7 +64,7 @@ const Node: React.FC<NodeProps> = ({
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNewTitle(e.target.value); // Update the title as the user types
+    setNewTitle(e.target.value);
   };
 
   useEffect(() => {
@@ -134,12 +131,7 @@ const Node: React.FC<NodeProps> = ({
             style={{ width: "auto" }}
           />
         ) : (
-          <NodeTitle
-            isSelected={isSelected}
-            onClick={onSelect}
-            // onKeyDown={handleKeyDown}
-            tabIndex={-1}
-          >
+          <NodeTitle isSelected={isSelected} onClick={onSelect} tabIndex={-1}>
             {node.title}
           </NodeTitle>
         )}

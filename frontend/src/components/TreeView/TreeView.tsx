@@ -9,6 +9,7 @@ import { findNodeById } from "../../utils/helper";
 import { defaultToastOptions } from "../../utils/toastHelper";
 import LeftPanelSkeleton from "../Skeletons/LeftPanelSkeleton";
 import CAlertModal from "../Alert/Alert";
+import { Box } from "@mui/material";
 
 function TreeView() {
   const {
@@ -205,8 +206,22 @@ function TreeView() {
       />
       {loading ? (
         <LeftPanelSkeleton></LeftPanelSkeleton>
-      ) : (
+      ) : tree.length > 0 ? (
         <div>{renderTree(tree)}</div>
+      ) : (
+        <Box
+          sx={{
+            display: "flex",
+            width: "80%",
+            margin: "auto",
+            justifyContent: "center",
+            marginTop: 5,
+          }}
+        >
+          <h4>
+            No Items here, click icons above to start adding folders or notes
+          </h4>
+        </Box>
       )}
       <CAlertModal
         open={alertOpen}
