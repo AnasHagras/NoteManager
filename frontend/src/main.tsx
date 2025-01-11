@@ -4,7 +4,7 @@ import theme from "./styles/theme";
 import App from "./App";
 import "./index.css";
 import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css"; // Import Toastify's CSS
+import "react-toastify/dist/ReactToastify.css";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
