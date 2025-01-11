@@ -91,12 +91,18 @@ export const useTreeStore = create<TreeState>()(
             nodes
               .filter((n) => n.id !== id)
               .map((n) => ({ ...n, children: removeChild(n.children || []) }));
+
           const nodeMessage =
             findNodeById(state.tree, id)?.type === "folder" ? "Folder" : "Note";
+
           const updatedTree = {
             tree: removeChild(state.tree),
             message: nodeMessage + " removed successfully!",
             messageType: "success",
+            lastOpenedNoteId:
+              state.lastOpenedNoteId === id ? null : state.lastOpenedNoteId,
+            lastOpenedEditId:
+              state.lastOpenedEditId === id ? null : state.lastOpenedEditId,
           } as TreeState;
 
           return updatedTree;
