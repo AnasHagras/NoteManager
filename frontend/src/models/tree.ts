@@ -1,7 +1,8 @@
 type TreeNode = {
   id: string;
   type: "folder" | "note";
-  name: string;
+  title?: string;
+  content?: string;
   children?: TreeNode[];
 };
 

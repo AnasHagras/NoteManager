@@ -6,20 +6,23 @@ type TreeState = {
   tree: TreeNode[];
   message: string | null;
   messageType: string | null;
+  lastOpenedNoteId: string | null; // Added lastOpenedNoteId state
   clearMessages: () => void;
   addNode: (parentId: string | null, node: TreeNode) => void;
   removeNode: (id: string) => void;
   setTree: (newTree: TreeNode[]) => void;
+  editNode: (id: string, newTitle?: string, newContent?: string) => void;
+  setLastOpenedNote: (id: string | null) => void; // Method to update lastOpenedNoteId
 };
 
 const localStorageAdapter = {
   getItem: (name: string) => {
     const item = localStorage.getItem(name);
-    return item ? JSON.parse(item)["tree"] : { tree: [] };
+    return item ? JSON.parse(item) : { tree: [], lastOpenedNoteId: null }; // Include lastOpenedNoteId
   },
   setItem: (name: string, value: { state: TreeState }) => {
-    const { tree } = value.state;
-    localStorage.setItem(name, JSON.stringify({ tree }));
+    const { tree, lastOpenedNoteId } = value.state;
+    localStorage.setItem(name, JSON.stringify({ tree, lastOpenedNoteId }));
   },
   removeItem: (name: string) => {
     localStorage.removeItem(name);
@@ -32,6 +35,7 @@ export const useTreeStore = create<TreeState>()(
       tree: [],
       message: null,
       messageType: null,
+      lastOpenedNoteId: null, // Initialize lastOpenedNoteId
       addNode: (parentId, node) =>
         set((state) => {
           const addChild = (nodes: TreeNode[]): TreeNode[] => {
@@ -96,12 +100,34 @@ export const useTreeStore = create<TreeState>()(
       setTree: (newTree) => {
         set(() => ({
           tree: newTree,
-          message: "Tree updated successfully!",
-          messageType: "success",
         }));
       },
       clearMessages: () => {
         set(() => ({ message: null, messageType: null }));
+      },
+      editNode: (id: string, newTitle?: string, newContent?: string) =>
+        set((state) => {
+          const updateNode = (nodes: TreeNode[]): TreeNode[] =>
+            nodes.map((node) =>
+              node.id === id
+                ? {
+                    ...node,
+                    title: newTitle ?? node.title,
+                    content: newContent ?? node.content,
+                  }
+                : { ...node, children: updateNode(node.children || []) }
+            );
+
+          return {
+            tree: updateNode(state.tree),
+            message: "Node updated successfully!",
+            messageType: "success",
+          };
+        }),
+      setLastOpenedNote: (id: string | null) => {
+        set(() => ({
+          lastOpenedNoteId: id, // Update the last opened note
+        }));
       },
     }),
     {
