@@ -58,7 +58,7 @@ const CAlertModal: React.FC<CAlertModalProps> = ({
       <AlertModalContainer>
         <AlertModalTitle>{title}</AlertModalTitle>
         <AlertModalContent>{content}</AlertModalContent>
-        <AlertModalButton onClick={(e) => handleButtonClick()}>
+        <AlertModalButton onClick={() => handleButtonClick()}>
           {buttonText}
         </AlertModalButton>
       </AlertModalContainer>

@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import BreadCrumb from "./BreadCrumb";
-import { getPathToNode } from "../../utils/helper";
+import { getPathToNode } from "../../utils/TreeUtils";
 
 jest.mock("../../utils/helper", () => ({
   getPathToNode: jest.fn(),
