@@ -30,3 +30,5 @@ coverage/
 # Others
 *.env
 *.lock
+
+supabase_cred.txt

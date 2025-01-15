@@ -3,7 +3,7 @@ import { IconButton } from "@mui/material";
 import { ExpandMore, ExpandLess, NoteAdd, Folder } from "@mui/icons-material";
 import { HeaderWrapper, AddButtonWrapper } from "./TreeViewHeader.styles";
 import { TreeNode } from "../../models/tree";
-import { isCollapsedAll } from "../../utils/helper";
+import { isCollapsedAll } from "../../utils/TreeUtils";
 
 interface TreeViewHeaderProps {
   onAddFolder: () => void;
@@ -12,6 +12,7 @@ interface TreeViewHeaderProps {
   onExpandAll: () => void;
   onCollapseAll: () => void;
   loading: boolean;
+  collapsedNodeIds: Set<string>;
 }
 
 const TreeViewHeader: React.FC<TreeViewHeaderProps> = ({
@@ -21,8 +22,9 @@ const TreeViewHeader: React.FC<TreeViewHeaderProps> = ({
   onExpandAll,
   onCollapseAll,
   loading,
+  collapsedNodeIds,
 }) => {
-  const allCollapsed = isCollapsedAll(tree);
+  const allCollapsed = isCollapsedAll(tree, collapsedNodeIds);
 
   return (
     <HeaderWrapper>

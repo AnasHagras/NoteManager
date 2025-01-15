@@ -8,7 +8,7 @@ interface NoteNodeProps {
   onSelect: () => void;
   onRemove: () => void;
   onAddChild: (type: "folder" | "note") => void;
-  onEdit: (id: string, newTitle: string) => void;
+  onEdit: (id: string, updatedNode: Partial<TreeNode>) => void;
   editTitle: string;
   editContent: string;
   onTitleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;

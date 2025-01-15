@@ -1,36 +1,34 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Fragment } from "react";
 import FolderNode from "../Node/FolderNode";
 import NoteNode from "../Node/NoteNode";
 import { TreeNode } from "../../models/tree";
 import { useTreeStore } from "../../store";
 import TreeViewHeader from "./TreeViewHeader";
 import { toast } from "react-toastify";
-import { findNodeById } from "../../utils/helper";
+import { findNodeById, isNodeCollapsed } from "../../utils/TreeUtils";
 import { defaultToastOptions } from "../../utils/toastHelper";
 import LeftPanelSkeleton from "../Skeletons/LeftPanelSkeleton";
 import CAlertModal from "../Alert/Alert";
 import { Box } from "@mui/material";
-
+import { buildTree } from "../../services/supabase/treeService";
+import { capitalize } from "../../utils/helper";
 function TreeView() {
   const {
     tree,
     lastOpenedNoteId,
+    collapsedNodeIds,
     setLastOpenedNote,
     removeNode,
     addNode,
     editNode,
     toggleCollapse,
     setTree,
-    message,
-    clearMessages,
-    messageType,
     editingNodeId,
     setEditingNodeId,
     collapseAll,
     expandAll,
     setLastOpenedEditId,
-    viewUp,
-    viewDown,
+    setCollapsedNodeIds,
   } = useTreeStore((state) => state);
 
   const [loading, setLoading] = useState<boolean>(true);
@@ -39,6 +37,45 @@ function TreeView() {
 
   const [alertOpen, setAlertOpen] = useState(false);
   const [nodeToRemove, setNodeToRemove] = useState<TreeNode | null>(null);
+
+  const handleModalClose = () => {
+    setAlertOpen(false);
+    // setNodeToRemove(null);
+  };
+
+  const handleEditNote = (id: string, updatedNode: Partial<TreeNode>) => {
+    const node_type = updatedNode.type === "folder" ? "Folder" : "Note";
+    editNode(id, updatedNode)
+      .then((response) => {
+        if (response.success) {
+          toast.success(
+            `${node_type} updated successfully.`,
+            defaultToastOptions
+          );
+        } else {
+          toast.error(`Failed to update ${node_type}.`, defaultToastOptions);
+        }
+      })
+      .catch(() => {
+        toast.error(`Failed to update ${node_type}.`, defaultToastOptions);
+      });
+  };
+
+  const doRemove = (id: string) => {
+    const node = findNodeById(tree, id);
+    const node_type = capitalize(node?.type || "");
+    toast.info(
+      `Removing ${node_type} : ${node?.title}...`,
+      defaultToastOptions
+    );
+    removeNode(id).then((response) => {
+      if (response.success) {
+        toast.success(`${node_type} removed successfully`, defaultToastOptions);
+      } else {
+        toast.error(`Failed to remove ${node_type}`, defaultToastOptions);
+      }
+    });
+  };
 
   const handleRemoveNode = (id: string) => {
     const node = findNodeById(tree, id);
@@ -50,16 +87,16 @@ function TreeView() {
       setNodeToRemove(node);
       setAlertOpen(true);
     } else {
-      removeNode(id);
+      doRemove(id);
     }
   };
 
   const confirmRemoveNode = () => {
     if (nodeToRemove) {
-      removeNode(nodeToRemove.id);
+      if (nodeToRemove.id != null) {
+        doRemove(nodeToRemove.id);
+      }
     }
-    setAlertOpen(false);
-    setNodeToRemove(null);
   };
 
   const handleAddNewNode = (
@@ -67,22 +104,41 @@ function TreeView() {
     type: "folder" | "note"
   ) => {
     const newNode: TreeNode = {
-      id: `${Date.now()}`,
       type,
       title: `${type === "folder" ? "New Folder" : "New Note"}`,
       content: type === "note" ? "This is a new note" : "",
-      children: [],
+      id: "",
     };
-    addNode(parentId, newNode);
-    setLastOpenedNote(newNode.id);
-    setEditingNodeId(newNode.id);
-    const parent_node = findNodeById(tree as TreeNode[], parentId as string);
-    if (parent_node?.isCollapsed) {
-      toggleCollapse(parentId as string);
-    }
-    if (newNode.type === "note") {
-      setLastOpenedEditId(newNode.id);
-    }
+
+    toast.info(`Adding ${type === "folder" ? "Folder" : "Note"}...`, {
+      ...defaultToastOptions,
+    });
+
+    addNode(parentId, newNode).then((response) => {
+      if (response.success) {
+        toast.success(
+          `${type === "folder" ? "Folder" : "Note"} added successfully`,
+          defaultToastOptions
+        );
+        // console.log("data", response.data);
+        let newNodeId = null;
+        newNodeId = response?.data?.id || null;
+        setLastOpenedNote(newNodeId);
+        setEditingNodeId(newNodeId);
+        // const parent_node = findNodeById(tree as TreeNode[], parentId || "");
+        if (isNodeCollapsed(collapsedNodeIds, parentId || "")) {
+          toggleCollapse(parentId || "");
+        }
+        if (newNode.type === "note") {
+          setLastOpenedEditId(newNodeId);
+        }
+      } else {
+        toast.error(
+          `Failed to add ${type === "folder" ? "Folder" : "Note"}`,
+          defaultToastOptions
+        );
+      }
+    });
   };
 
   const handleOnSelect = (id: string) => {
@@ -95,85 +151,83 @@ function TreeView() {
   };
 
   const updateTree = useCallback(() => {
+    setLoading(true);
     setTimeout(() => {
-      const storedTree = localStorage.getItem("tree-storage");
+      const localStorageTree = localStorage.getItem("tree-storage");
 
-      if (storedTree) {
-        const parsedTree = JSON.parse(storedTree).tree;
-        setTree(parsedTree);
-        setLastOpenedNote(JSON.parse(storedTree).lastOpenedNoteId);
-        setLastOpenedEditId(JSON.parse(storedTree).lastOpenedEditId);
-      } else {
-        const defaultTree: TreeNode[] = [];
-        setTree(defaultTree);
+      if (localStorageTree) {
+        setLastOpenedNote(JSON.parse(localStorageTree).lastOpenedNoteId);
+        setLastOpenedEditId(JSON.parse(localStorageTree).lastOpenedEditId);
+        setCollapsedNodeIds(
+          new Set(JSON.parse(localStorageTree).collapsedNodeIds)
+        );
       }
+
+      buildTree()
+        .then((newTree) => {
+          setTree(newTree);
+        })
+        .catch(() => {
+          toast.error("Failed to get Notes.", defaultToastOptions);
+          setTree([]);
+        });
+
       setLoading(false);
     }, 1000);
-  }, [setLastOpenedEditId, setLastOpenedNote, setTree]);
+  }, [setCollapsedNodeIds, setLastOpenedEditId, setLastOpenedNote, setTree]);
 
-  const handleViewUp = (id: string) => {
-    viewUp(id);
-  };
+  // const handleViewUp = (id: string) => {
+  //   viewUp(id);
+  // };
 
-  const handleViewDown = (id: string) => {
-    viewDown(id);
-  };
+  // const handleViewDown = (id: string) => {
+  //   viewDown(id);
+  // };
 
   useEffect(() => {
     updateTree();
   }, [updateTree]);
-
-  useEffect(() => {
-    if (message) {
-      if (messageType === "success") {
-        toast.success(message, defaultToastOptions);
-      } else if (messageType === "error") {
-        toast.error(message, defaultToastOptions);
-      }
-      clearMessages();
-    }
-  }, [clearMessages, message, messageType]);
 
   const renderTree = (nodes: TreeNode[], level: number = 0) => {
     return (
       <ul>
         {nodes.map((node) => {
           const isSelected = lastOpenedNoteId === node.id;
-          const isCollapsed = node.isCollapsed || false;
+          const isCollapsed = isNodeCollapsed(collapsedNodeIds, node.id);
           const isEditing = editingNodeId === node.id;
 
           const commonProps = {
             level,
-            key: node.id,
             node,
             isSelected,
             isCollapsed,
             onSelect: () => handleOnSelect(node.id),
             onRemove: () => handleRemoveNode(node.id),
             onToggleCollapse: () => toggleCollapse(node.id),
-            viewUp: () => handleViewUp(node.id),
-            viewDown: () => handleViewDown(node.id),
+            // NOTE: viewUp and viewDown are not implemented yet
+            viewUp: () => {},
+            viewDown: () => {},
             onAddChild: (type: "folder" | "note") =>
               handleAddNewNode(node.id, type),
-            onEdit: (id: string, newTitle: string) =>
-              editNode(id, newTitle, node.content),
+            onEdit: (id: string, updatedNode: Partial<TreeNode>) =>
+              handleEditNote(id, updatedNode),
             isEditing,
             setEditingNodeId,
           };
 
           if (node.type === "folder") {
             return (
-              <>
+              <Fragment key={node.id}>
                 <FolderNode {...commonProps} />
                 {!isCollapsed && node.children && node.children.length > 0 && (
                   <>{renderTree(node.children, level + 1)}</>
                 )}
-              </>
+              </Fragment>
             );
           }
 
           return (
-            <>
+            <Fragment key={node.id}>
               <NoteNode
                 {...commonProps}
                 isEditing={isEditing}
@@ -187,7 +241,7 @@ function TreeView() {
               {!isCollapsed && node.children && node.children.length > 0 && (
                 <>{renderTree(node.children, level + 1)}</>
               )}
-            </>
+            </Fragment>
           );
         })}
       </ul>
@@ -197,6 +251,7 @@ function TreeView() {
   return (
     <div>
       <TreeViewHeader
+        collapsedNodeIds={collapsedNodeIds}
         loading={loading}
         tree={tree}
         onCollapseAll={() => collapseAll()}
@@ -224,13 +279,13 @@ function TreeView() {
         </Box>
       )}
       <CAlertModal
-        open={alertOpen}
+        open={alertOpen && nodeToRemove !== null}
         setOpen={setAlertOpen}
         title={`Remove [${nodeToRemove?.title}]`}
         content="This folder contains sub folders or notes. Are you sure you want to remove it?"
         buttonText="Remove"
         onClick={confirmRemoveNode}
-        handleClose={() => setAlertOpen(false)}
+        handleClose={() => handleModalClose()}
       />
     </div>
   );

@@ -15,8 +15,8 @@ interface CAlertModalProps {
   open: boolean;
   setOpen: (open: boolean) => void;
   setSelectedUser?: (user: null) => void;
-  onClick?: (event: React.MouseEvent<HTMLDivElement>, reason?: string) => void;
-  handleClose?: (event: unknown, reason?: string) => void;
+  onClick?: () => void;
+  handleClose?: () => void;
   closeOnEscape?: boolean;
   shouldRefresh?: boolean;
 }
@@ -36,16 +36,19 @@ const CAlertModal: React.FC<CAlertModalProps> = ({
     reason?: string
   ) => {
     if (onClick) {
-      onClick(event, reason);
+      onClick();
     }
-    if (handleClose) {
-      handleClose(event, reason);
-    }
+
     if (
       (reason === "backdropClick" && closeOnEscape) ||
       reason !== "backdropClick"
     ) {
       setOpen(false);
+    }
+
+    if (handleClose) {
+      // console.log("handleClose");
+      handleClose();
     }
   };
 

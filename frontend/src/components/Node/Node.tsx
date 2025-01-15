@@ -12,7 +12,7 @@ interface NodeProps {
   onSelect: () => void;
   onRemove: () => void;
   onAddChild: (type: "folder" | "note") => void;
-  onEdit: (id: string, newTitle: string) => void; // onEdit now takes the new title as a parameter
+  onEdit: (id: string, updatedNode: Partial<TreeNode>) => void; // onEdit now takes the new title as a parameter
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
   level: number;
@@ -44,7 +44,7 @@ const Node: React.FC<NodeProps> = ({
 
   const handleRename = () => {
     if (isEditing && newTitle !== node.title) {
-      onEdit(node.id, newTitle || "");
+      onEdit(node.id, { ...node, title: newTitle });
     }
     setEditingNodeId(null);
   };

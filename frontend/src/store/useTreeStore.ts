@@ -1,33 +1,40 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { TreeNode } from "../models/tree";
-import { findNextNode, findNodeById, findPrevNode } from "../utils/helper";
+
+import {
+  addNode,
+  deleteNode,
+  updateNode,
+} from "../services/supabase/treeService";
+
+import {
+  convertSupabaseNodeToTreeNode,
+  convertTreeNodeToNewSupabaseNode,
+  convertTreeNodeToSupabaseNode,
+  getAllNodeIds,
+} from "../utils/TreeUtils";
+
+import { ServiceResponse } from "../models/api";
 
 type TreeState = {
   tree: TreeNode[];
-  message: string | null;
-  messageType: string | null;
+  collapsedNodeIds: Set<string>;
   lastOpenedNoteId: string | null;
   editingNodeId: string | null;
   lastOpenedEditId: string | null;
   setLastOpenedEditId: (id: string | null) => void;
   setEditingNodeId: (id: string | null) => void;
-  clearMessages: () => void;
-  addNode: (parentId: string | null, node: TreeNode) => void;
-  removeNode: (id: string) => void;
+  addNode: (parentId: string | null, node: TreeNode) => ServiceResponse;
+  removeNode: (id: string) => ServiceResponse;
   setTree: (newTree: TreeNode[]) => void;
-  editNode: (
-    id: string,
-    newTitle?: string,
-    newContent?: string,
-    isCollapsed?: boolean
-  ) => void;
+  editNode: (id: string, updatedNode: Partial<TreeNode>) => ServiceResponse;
   setLastOpenedNote: (id: string | null) => void;
   toggleCollapse: (id: string) => void;
   expandAll: () => void;
   collapseAll: () => void;
-  viewUp: (id: string) => void;
-  viewDown: (id: string) => void;
+  setCollapsedNode: (id: string, isCollapsed: boolean) => void;
+  setCollapsedNodeIds: (ids: Set<string>) => void;
 };
 
 const localStorageAdapter = {
@@ -35,13 +42,22 @@ const localStorageAdapter = {
     const item = localStorage.getItem(name);
     return item
       ? JSON.parse(item)
-      : { tree: [], lastOpenedNoteId: null, lastOpenedEditId: null };
+      : {
+          collapsedNodeIds: [],
+          lastOpenedNoteId: null,
+          lastOpenedEditId: null,
+        };
   },
   setItem: (name: string, value: { state: TreeState }) => {
-    const { tree, lastOpenedNoteId, lastOpenedEditId } = value.state;
+    const { collapsedNodeIds, lastOpenedNoteId, lastOpenedEditId } =
+      value.state;
     localStorage.setItem(
       name,
-      JSON.stringify({ tree, lastOpenedNoteId, lastOpenedEditId })
+      JSON.stringify({
+        collapsedNodeIds: Array.from(collapsedNodeIds),
+        lastOpenedNoteId,
+        lastOpenedEditId,
+      })
     );
   },
   removeItem: (name: string) => {
@@ -51,113 +67,112 @@ const localStorageAdapter = {
 
 export const useTreeStore = create<TreeState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       tree: [],
       message: null,
       messageType: null,
       lastOpenedNoteId: null,
       lastOpenedEditId: null,
       editingNodeId: null,
-      addNode: (parentId, node) =>
-        set((state) => {
-          const addChild = (nodes: TreeNode[]): TreeNode[] => {
-            return nodes.map((n) =>
-              n.id === parentId
-                ? { ...n, children: [...(n.children || []), node] }
-                : { ...n, children: addChild(n.children || []) }
-            );
-          };
-          const nodeTypeMessage =
-            node.type === "folder"
-              ? "Folder added successfully!"
-              : "Note added successfully!";
-          const updatedTree = parentId
-            ? {
-                tree: addChild(state.tree),
-                message: nodeTypeMessage,
-                messageType: "success",
-              }
-            : {
-                tree: [...state.tree, node],
-                message: nodeTypeMessage,
-                messageType: "success",
-              };
+      collapsedNodeIds: new Set<string>(),
+      addNode: async (parentId, node) => {
+        const state = get();
+        const supabaseNode = convertTreeNodeToNewSupabaseNode(parentId, node);
 
-          return updatedTree;
-        }),
-      removeNode: (id) =>
-        set((state) => {
-          const removeChild = (nodes: TreeNode[]): TreeNode[] =>
-            nodes
-              .filter((n) => n.id !== id)
-              .map((n) => ({ ...n, children: removeChild(n.children || []) }));
+        const result = await addNode(supabaseNode);
+        // console.log("Result from addNode", result);
+        let retrieved_node: TreeNode;
+        if (result.success) {
+          retrieved_node = convertSupabaseNodeToTreeNode(result.data || {});
+          // console.log("New node added:", result.data);
+        } else {
+          console.error("Error adding new node:", result.error);
+          return result;
+        }
 
-          const nodeMessage =
-            findNodeById(state.tree, id)?.type === "folder" ? "Folder" : "Note";
+        const addChild = (nodes: TreeNode[]): TreeNode[] => {
+          return nodes.map((n) =>
+            n.id === parentId
+              ? { ...n, children: [...(n.children || []), retrieved_node] }
+              : { ...n, children: addChild(n.children || []) }
+          );
+        };
 
-          const updatedTree = {
-            tree: removeChild(state.tree),
-            message: nodeMessage + " removed successfully!",
-            messageType: "success",
-            lastOpenedNoteId:
-              state.lastOpenedNoteId === id ? null : state.lastOpenedNoteId,
-            lastOpenedEditId:
-              state.lastOpenedEditId === id ? null : state.lastOpenedEditId,
-          } as TreeState;
+        const updatedTree = parentId
+          ? {
+              tree: addChild(state.tree),
+            }
+          : {
+              tree: [...state.tree, retrieved_node],
+            };
 
-          return updatedTree;
-        }),
+        set(updatedTree);
+        return result;
+      },
+
+      removeNode: async (id) => {
+        const state = get();
+
+        const result = await deleteNode(id);
+        if (result.success) {
+          // console.log("Node removed:", result.data);
+        } else {
+          console.error("Error removing node:", result.error);
+          return result;
+        }
+
+        const removeChild = (nodes: TreeNode[]): TreeNode[] =>
+          nodes
+            .filter((n) => n.id !== id)
+            .map((n) => ({
+              ...n,
+              children: removeChild(n.children || []),
+            }));
+
+        const updatedTree = {
+          tree: removeChild(state.tree),
+          lastOpenedNoteId:
+            state.lastOpenedNoteId === id ? null : state.lastOpenedNoteId,
+          lastOpenedEditId:
+            state.lastOpenedEditId === id ? null : state.lastOpenedEditId,
+        } as TreeState;
+
+        set(updatedTree);
+        return result;
+      },
+      editNode: async (id, updatedNode) => {
+        const state = get();
+
+        const supabaseNode = convertTreeNodeToSupabaseNode(updatedNode);
+        const result = await updateNode(supabaseNode);
+
+        if (result.success) {
+          // console.log("Node updated:", result.data);
+        } else {
+          console.error("Error updating node:", result.error);
+          return result;
+        }
+
+        const updateChild = (nodes: TreeNode[]): TreeNode[] =>
+          nodes.map((n) =>
+            n.id === id
+              ? { ...n, ...updatedNode }
+              : { ...n, children: updateChild(n.children || []) }
+          );
+
+        const updatedTree = {
+          tree: updateChild(state.tree),
+        } as TreeState;
+
+        set(updatedTree);
+        return result;
+      },
       setTree: (newTree) => {
         set(() => ({
           tree: newTree,
         }));
       },
-      clearMessages: () => {
-        set(() => ({ message: null, messageType: null }));
-      },
-      editNode: (
-        id: string,
-        newTitle?: string,
-        newContent?: string,
-        isCollapsed?: boolean
-      ) =>
-        set((state) => {
-          const updateNode = (nodes: TreeNode[]): TreeNode[] =>
-            nodes.map((node) =>
-              node.id === id
-                ? {
-                    ...node,
-                    title: newTitle ?? node.title,
-                    content: newContent ?? node.content,
-                    isCollapsed: isCollapsed ?? node.isCollapsed,
-                  }
-                : { ...node, children: updateNode(node.children || []) }
-            );
-          const node = findNodeById(state.tree, id);
-          const nodeType = node?.type;
-          if (newTitle?.trim() === "") {
-            return {
-              message: "title cannot be empty!",
-              messageType: "error",
-            };
-          }
-          if (
-            newTitle === node?.title &&
-            newContent === node?.content &&
-            isCollapsed === node?.isCollapsed
-          ) {
-            return {
-              message: "no changes made!",
-              messageType: "error",
-            };
-          }
-          const nodeMessage = nodeType === "folder" ? "Folder" : "Note";
-          return {
-            tree: updateNode(state.tree),
-            message: nodeMessage + " updated successfully!",
-            messageType: "success",
-          };
-        }),
+
       setLastOpenedNote: (id: string | null) => {
         set(() => ({
           lastOpenedNoteId: id,
@@ -165,22 +180,16 @@ export const useTreeStore = create<TreeState>()(
       },
       toggleCollapse: (id: string) =>
         set((state) => {
-          const toggleCollapseForNode = (nodes: TreeNode[]): TreeNode[] =>
-            nodes.map((node) =>
-              node.id === id
-                ? {
-                    ...node,
-                    isCollapsed:
-                      node.isCollapsed === undefined ? true : !node.isCollapsed, // Toggle collapse state
-                  }
-                : {
-                    ...node,
-                    children: toggleCollapseForNode(node.children || []),
-                  }
-            );
+          const isCollapsed = state.collapsedNodeIds.has(id);
+          const updatedCollapsedNodeIds = new Set(state.collapsedNodeIds);
+          if (isCollapsed) {
+            updatedCollapsedNodeIds.delete(id);
+          } else {
+            updatedCollapsedNodeIds.add(id);
+          }
 
           return {
-            tree: toggleCollapseForNode(state.tree),
+            collapsedNodeIds: updatedCollapsedNodeIds,
           };
         }),
       setEditingNodeId: (id) => {
@@ -189,29 +198,20 @@ export const useTreeStore = create<TreeState>()(
         }));
       },
       expandAll: () =>
-        set((state) => {
-          const expandAllNodes = (nodes: TreeNode[]): TreeNode[] =>
-            nodes.map((node) => ({
-              ...node,
-              isCollapsed: false,
-              children: node.children ? expandAllNodes(node.children) : [],
-            }));
-
+        set(() => {
           return {
-            tree: expandAllNodes(state.tree),
+            collapsedNodeIds: new Set(), // Clear all collapsed nodes
           };
         }),
+
       collapseAll: () =>
         set((state) => {
-          const collapseAllNodes = (nodes: TreeNode[]): TreeNode[] =>
-            nodes.map((node) => ({
-              ...node,
-              isCollapsed: true,
-              children: node.children ? collapseAllNodes(node.children) : [],
-            }));
-
+          const allNodeIds = new Set(
+            state.tree.flatMap((node) => getAllNodeIds(node)) // Helper function to get all node IDs
+          );
+          console.log("object", allNodeIds);
           return {
-            tree: collapseAllNodes(state.tree),
+            collapsedNodeIds: allNodeIds,
           };
         }),
       setLastOpenedEditId: (id) => {
@@ -219,30 +219,46 @@ export const useTreeStore = create<TreeState>()(
           lastOpenedEditId: id,
         }));
       },
-      viewUp: (id: string) =>
+      setCollapsedNode: (id, isCollapsed) => {
         set((state) => {
-          const prevNode = findPrevNode(state.tree, id);
-          console.log("prev", prevNode);
-          return {
-            lastOpenedEditId: prevNode?.id,
-            lastOpenedNoteId: prevNode?.id,
-          };
-        }),
-      viewDown: (id: string) =>
-        set((state) => {
-          const nextNode = findNextNode(state.tree, id);
-          console.log("nextNode", nextNode);
-          state.editNode(
-            nextNode?.id || " ",
-            nextNode?.title,
-            nextNode?.content,
-            false
-          );
-          return {
-            lastOpenedEditId: nextNode?.id,
-            lastOpenedNoteId: nextNode?.id,
-          };
-        }),
+          const updatedSet = new Set(state.collapsedNodeIds);
+          if (isCollapsed) {
+            updatedSet.add(id);
+          } else {
+            updatedSet.delete(id);
+          }
+          return { collapsedNodeIds: updatedSet };
+        });
+      },
+      setCollapsedNodeIds: (ids) => {
+        set(() => ({
+          collapsedNodeIds: ids,
+        }));
+      },
+      // viewUp: (id: string) =>
+      //   set((state) => {
+      //     const prevNode = findPrevNode(state.tree, id);
+      //     // console.log("prev", prevNode);
+      //     return {
+      //       lastOpenedEditId: prevNode?.id,
+      //       lastOpenedNoteId: prevNode?.id,
+      //     };
+      //   }),
+      // viewDown: (id: string) =>
+      //   set((state) => {
+      //     const nextNode = findNextNode(state.tree, id);
+      //     // console.log("nextNode", nextNode);
+      //     state.editNode(
+      //       nextNode?.id || " ",
+      //       nextNode?.title,
+      //       nextNode?.content,
+      //       false
+      //     );
+      //     return {
+      //       lastOpenedEditId: nextNode?.id,
+      //       lastOpenedNoteId: nextNode?.id,
+      //     };
+      //   }),
     }),
 
     {

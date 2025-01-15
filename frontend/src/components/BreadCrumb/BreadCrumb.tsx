@@ -1,6 +1,6 @@
 import React from "react";
 import { useTreeStore } from "../../store";
-import { getPathToNode } from "../../utils/helper";
+import { getPathToNode } from "../../utils/TreeUtils";
 import * as S from "./BreadCrumb.styles";
 
 interface BreadCrumbProps {

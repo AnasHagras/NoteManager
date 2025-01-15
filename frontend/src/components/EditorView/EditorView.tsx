@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { TreeNode } from "../../models/tree";
 import { CircularProgress } from "@mui/material";
 import { useTreeStore } from "../../store";
-import { findNodeById } from "../../utils/helper";
+import { findNodeById } from "../../utils/TreeUtils";
 import BreadCrumb from "../BreadCrumb/BreadCrumb";
 import {
   EditorContainer,
@@ -16,6 +16,8 @@ import {
   SaveButton,
   CancelButton,
 } from "./EditorView.styles";
+import { toast } from "react-toastify";
+import { defaultToastOptions } from "../../utils/toastHelper";
 
 const EditorView: React.FC = () => {
   const { tree, lastOpenedEditId, editNode, lastOpenedNoteId } = useTreeStore(
@@ -58,7 +60,22 @@ const EditorView: React.FC = () => {
 
   const handleSave = () => {
     if (node) {
-      editNode(node.id, editTitle, editContent);
+      toast.info("Saving changes...", defaultToastOptions);
+      editNode(node.id, {
+        ...node,
+        title: editTitle,
+        content: editContent,
+      })
+        .then((response) => {
+          if (response.success) {
+            toast.success("Note updated successfully.", defaultToastOptions);
+          } else {
+            toast.error("Failed to update Note.", defaultToastOptions);
+          }
+        })
+        .catch(() => {
+          toast.error("Failed to update Note.", defaultToastOptions);
+        });
     }
   };
 

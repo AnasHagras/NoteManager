@@ -8,7 +8,7 @@ interface FolderNodeProps {
   onSelect: () => void;
   onRemove: () => void;
   onAddChild: (type: "folder" | "note") => void;
-  onEdit: (id: string, newTitle: string) => void;
+  onEdit: (id: string, updatedNode: Partial<TreeNode>) => void;
   onToggleCollapse?: () => void;
   level?: number;
   isEditing: boolean;
