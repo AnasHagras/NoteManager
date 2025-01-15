@@ -1,8 +1,8 @@
 import { SupabaseNode } from "./tree";
-type ServiceResponse = Promise<{
+type TreeResponse = Promise<{
   success: boolean;
   data?: Partial<SupabaseNode>;
   error?: string;
 }>;
 
-export { type ServiceResponse };
+export { type TreeResponse as ServiceResponse };

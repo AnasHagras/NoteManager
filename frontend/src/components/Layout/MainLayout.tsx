@@ -12,10 +12,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ treeView, editorPanel }) => {
   return (
     <LayoutContainer>
       {/* Left Panel: TreeView */}
-      <Panel flex="1 0 20%">{treeView}</Panel>
+      <Panel flex="1 0 25%">{treeView}</Panel>
 
       {/* Right Panel: Editor */}
-      <Panel flex="2 0 80%">{editorPanel}</Panel>
+      <Panel flex="2 0 75%">{editorPanel}</Panel>
     </LayoutContainer>
   );
 };

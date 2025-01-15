@@ -10,8 +10,11 @@ import { defaultToastOptions } from "../../utils/toastHelper";
 import LeftPanelSkeleton from "../Skeletons/LeftPanelSkeleton";
 import CAlertModal from "../Alert/Alert";
 import { Box } from "@mui/material";
-import { buildTree } from "../../services/supabase/treeService";
+import { buildTree } from "../../services/supabase/treeServices";
 import { capitalize } from "../../utils/helper";
+import TreeViewFooter from "./TreeViewFooter";
+import { useAuthStore } from "../../store/useAuthStore";
+import { useNavigate } from "react-router-dom";
 function TreeView() {
   const {
     tree,
@@ -31,16 +34,23 @@ function TreeView() {
     setCollapsedNodeIds,
   } = useTreeStore((state) => state);
 
+  const { logout } = useAuthStore((state) => state);
+
   const [loading, setLoading] = useState<boolean>(true);
   const [editTitle, setEditTitle] = useState<string>("");
   const [editContent, setEditContent] = useState<string>("");
 
   const [alertOpen, setAlertOpen] = useState(false);
   const [nodeToRemove, setNodeToRemove] = useState<TreeNode | null>(null);
+  const navigate = useNavigate();
+
+  const handleLogOut = () => {
+    logout();
+    navigate("/login");
+  };
 
   const handleModalClose = () => {
     setAlertOpen(false);
-    // setNodeToRemove(null);
   };
 
   const handleEditNote = (id: string, updatedNode: Partial<TreeNode>) => {
@@ -120,12 +130,10 @@ function TreeView() {
           `${type === "folder" ? "Folder" : "Note"} added successfully`,
           defaultToastOptions
         );
-        // console.log("data", response.data);
         let newNodeId = null;
         newNodeId = response?.data?.id || null;
         setLastOpenedNote(newNodeId);
         setEditingNodeId(newNodeId);
-        // const parent_node = findNodeById(tree as TreeNode[], parentId || "");
         if (isNodeCollapsed(collapsedNodeIds, parentId || "")) {
           toggleCollapse(parentId || "");
         }
@@ -249,7 +257,13 @@ function TreeView() {
   };
 
   return (
-    <div>
+    <div
+      style={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       <TreeViewHeader
         collapsedNodeIds={collapsedNodeIds}
         loading={loading}
@@ -262,7 +276,17 @@ function TreeView() {
       {loading ? (
         <LeftPanelSkeleton></LeftPanelSkeleton>
       ) : tree.length > 0 ? (
-        <div>{renderTree(tree)}</div>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            flexGrow: 1,
+          }}
+        >
+          <div>{renderTree(tree)}</div>
+          <TreeViewFooter onClick={handleLogOut}></TreeViewFooter>
+        </Box>
       ) : (
         <Box
           sx={{

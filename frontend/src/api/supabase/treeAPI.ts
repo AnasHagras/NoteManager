@@ -1,7 +1,7 @@
 import { supabase } from "./supabase";
 import { NewSupabaseNode, SupabaseNode } from "../../models/tree";
 import { ServiceResponse } from "../../models/api";
-
+import { handleGetSession } from "../../services/supabase/authServices";
 /**
  * Fetches all tree nodes from the database.
  * @returns {Promise<SupabaseNode[]>} List of tree nodes or an empty array if there's an error.
@@ -11,9 +11,15 @@ const fetchNodes = async (): Promise<{
   data?: SupabaseNode[];
   error?: string;
 }> => {
+  const { session } = await handleGetSession();
+  if (!session) {
+    return { success: false, error: "User not logged in" };
+  }
+  const user_id = session.user.id;
   const { data, error } = await supabase
     .from("nodes")
     .select("*")
+    .eq("owner_id", user_id)
     .order("created_at", { ascending: true });
 
   if (error) {
@@ -25,10 +31,16 @@ const fetchNodes = async (): Promise<{
 };
 
 const getNode = async (nodeId: string): Promise<ServiceResponse> => {
+  const { session } = await handleGetSession();
+  if (!session) {
+    return { success: false, error: "User not logged in" };
+  }
+  const user_id = session.user.id;
   const { data, error } = await supabase
     .from("nodes")
     .select("*")
     .eq("id", nodeId)
+    .eq("owner_id", user_id)
     .single();
 
   if (error) {
@@ -46,9 +58,14 @@ const getNode = async (nodeId: string): Promise<ServiceResponse> => {
  * An object indicating the success status, and either the added node data or an error message.
  */
 const addNode = async (newNode: NewSupabaseNode): ServiceResponse => {
+  const { session } = await handleGetSession();
+  if (!session) {
+    return { success: false, error: "User not logged in" };
+  }
+  const user_id = session.user.id;
   const { data, error } = await supabase
     .from("nodes")
-    .insert([newNode])
+    .insert([{ ...newNode, owner_id: user_id }])
     .select()
     .single();
 
@@ -68,10 +85,16 @@ const addNode = async (newNode: NewSupabaseNode): ServiceResponse => {
  * An object indicating the success status, and either the updated node data or an error message.
  */
 const updateNode = async (updatedNode: SupabaseNode): ServiceResponse => {
+  const { session } = await handleGetSession();
+  if (!session) {
+    return { success: false, error: "User not logged in" };
+  }
+  const user_id = session.user.id;
   const { data, error } = await supabase
     .from("nodes")
     .update(updatedNode)
     .match({ id: updatedNode.id })
+    .eq("owner_id", user_id)
     .select()
     .single();
 
@@ -91,10 +114,16 @@ const updateNode = async (updatedNode: SupabaseNode): ServiceResponse => {
  * An object indicating the success status, and either the deleted node ID or an error message.
  */
 const deleteNode = async (nodeId: string): ServiceResponse => {
+  const { session } = await handleGetSession();
+  if (!session) {
+    return { success: false, error: "User not logged in" };
+  }
+  const user_id = session.user.id;
   const { data, error } = await supabase
     .from("nodes")
     .delete()
     .match({ id: nodeId })
+    .eq("owner_id", user_id)
     .select()
     .single();
 
@@ -109,10 +138,16 @@ const deleteNode = async (nodeId: string): ServiceResponse => {
 
 // get the parentId of a node from database
 const getParentId = async (nodeId: string): ServiceResponse => {
+  const { session } = await handleGetSession();
+  if (!session) {
+    return { success: false, error: "User not logged in" };
+  }
+  const user_id = session.user.id;
   const { data, error } = await supabase
     .from("nodes")
     .select("parent_id")
     .eq("id", nodeId)
+    .eq("owner_id", user_id)
     .single();
 
   if (error) {

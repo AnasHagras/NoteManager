@@ -5,6 +5,7 @@ import App from "./App";
 import "./index.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { AuthProvider } from "./context/AuthProvider";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -12,7 +13,9 @@ const root = ReactDOM.createRoot(
 
 root.render(
   <ThemeProvider theme={theme}>
-    <ToastContainer />
-    <App />
+    <AuthProvider>
+      <App />
+      <ToastContainer />
+    </AuthProvider>
   </ThemeProvider>
 );

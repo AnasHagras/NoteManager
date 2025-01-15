@@ -50,7 +50,6 @@ const addNode = async (newNode: NewSupabaseNode): ServiceResponse => {
 // Updates an existing node in the database
 const updateNode = async (updatedNode: SupabaseNode): ServiceResponse => {
   return updateNodeAPI(updatedNode);
-  //   return result;
 };
 
 // Deletes a node by its ID from the database

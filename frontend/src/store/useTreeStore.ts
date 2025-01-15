@@ -6,7 +6,7 @@ import {
   addNode,
   deleteNode,
   updateNode,
-} from "../services/supabase/treeService";
+} from "../services/supabase/treeServices";
 
 import {
   convertSupabaseNodeToTreeNode,
@@ -35,6 +35,7 @@ type TreeState = {
   collapseAll: () => void;
   setCollapsedNode: (id: string, isCollapsed: boolean) => void;
   setCollapsedNodeIds: (ids: Set<string>) => void;
+  clearData: () => void;
 };
 
 const localStorageAdapter = {
@@ -80,11 +81,9 @@ export const useTreeStore = create<TreeState>()(
         const supabaseNode = convertTreeNodeToNewSupabaseNode(parentId, node);
 
         const result = await addNode(supabaseNode);
-        // console.log("Result from addNode", result);
         let retrieved_node: TreeNode;
         if (result.success) {
           retrieved_node = convertSupabaseNodeToTreeNode(result.data || {});
-          // console.log("New node added:", result.data);
         } else {
           console.error("Error adding new node:", result.error);
           return result;
@@ -235,30 +234,14 @@ export const useTreeStore = create<TreeState>()(
           collapsedNodeIds: ids,
         }));
       },
-      // viewUp: (id: string) =>
-      //   set((state) => {
-      //     const prevNode = findPrevNode(state.tree, id);
-      //     // console.log("prev", prevNode);
-      //     return {
-      //       lastOpenedEditId: prevNode?.id,
-      //       lastOpenedNoteId: prevNode?.id,
-      //     };
-      //   }),
-      // viewDown: (id: string) =>
-      //   set((state) => {
-      //     const nextNode = findNextNode(state.tree, id);
-      //     // console.log("nextNode", nextNode);
-      //     state.editNode(
-      //       nextNode?.id || " ",
-      //       nextNode?.title,
-      //       nextNode?.content,
-      //       false
-      //     );
-      //     return {
-      //       lastOpenedEditId: nextNode?.id,
-      //       lastOpenedNoteId: nextNode?.id,
-      //     };
-      //   }),
+      clearData: () => {
+        set(() => ({
+          tree: [],
+          collapsedNodeIds: new Set<string>(),
+          lastOpenedNoteId: null,
+          lastOpenedEditId: null,
+        }));
+      },
     }),
 
     {
