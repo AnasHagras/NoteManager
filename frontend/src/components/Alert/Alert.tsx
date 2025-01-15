@@ -31,10 +31,7 @@ const CAlertModal: React.FC<CAlertModalProps> = ({
   handleClose,
   closeOnEscape = false,
 }) => {
-  const handleButtonClick = (
-    event: React.MouseEvent<HTMLDivElement>,
-    reason?: string
-  ) => {
+  const handleButtonClick = (reason?: string) => {
     if (onClick) {
       onClick();
     }
@@ -61,7 +58,7 @@ const CAlertModal: React.FC<CAlertModalProps> = ({
       <AlertModalContainer>
         <AlertModalTitle>{title}</AlertModalTitle>
         <AlertModalContent>{content}</AlertModalContent>
-        <AlertModalButton onClick={(e) => handleButtonClick(e)}>
+        <AlertModalButton onClick={(e) => handleButtonClick()}>
           {buttonText}
         </AlertModalButton>
       </AlertModalContainer>

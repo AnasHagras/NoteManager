@@ -14,6 +14,6 @@ type SupabaseNode = {
   content?: string;
 };
 
-type NewSupabaseNode = Omit<SupabaseNode, "id"> & { owner_id: string };
+type NewSupabaseNode = Omit<SupabaseNode, "id">;
 
 export { type TreeNode, type SupabaseNode, type NewSupabaseNode };
