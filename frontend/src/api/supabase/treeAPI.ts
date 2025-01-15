@@ -23,7 +23,7 @@ const fetchNodes = async (): Promise<{
     .order("created_at", { ascending: true });
 
   if (error) {
-    console.error("Error fetching tree:", error);
+    // // console.error("Error fetching tree:", error);
     return { success: false, error: error.message }; // Return the error if failure
   }
 
@@ -44,7 +44,7 @@ const getNode = async (nodeId: string): Promise<ServiceResponse> => {
     .single();
 
   if (error) {
-    console.error("Error fetching node:", error);
+    // console.error("Error fetching node:", error);
     return { success: false, error: error.message }; // Return the error if failure
   }
 
@@ -70,7 +70,7 @@ const addNode = async (newNode: NewSupabaseNode): ServiceResponse => {
     .single();
 
   if (error) {
-    console.error("Error adding new node:", error);
+    // console.error("Error adding new node:", error);
     return { success: false, error: error.message }; // Return the error if failure
   } else {
     // console.log("New node added:", data);
@@ -99,7 +99,7 @@ const updateNode = async (updatedNode: SupabaseNode): ServiceResponse => {
     .single();
 
   if (error) {
-    console.error("Error updating node:", error);
+    // console.error("Error updating node:", error);
     return { success: false, error: error.message }; // Return the error if failure
   } else {
     // console.log("Node updated:", data);
@@ -128,7 +128,7 @@ const deleteNode = async (nodeId: string): ServiceResponse => {
     .single();
 
   if (error) {
-    console.error("Error deleting node:", error);
+    // console.error("Error deleting node:", error);
     return { success: false, error: error.message }; // Return the error if failure
   } else {
     // console.log("Node deleted:", data);
@@ -151,7 +151,7 @@ const getParentId = async (nodeId: string): ServiceResponse => {
     .single();
 
   if (error) {
-    console.error("Error fetching parent ID:", error);
+    // console.error("Error fetching parent ID:", error);
     return { success: false, error: error.message }; // Return the error if failure
   }
 

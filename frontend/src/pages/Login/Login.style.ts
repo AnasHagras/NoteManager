@@ -1,7 +1,6 @@
 import { styled } from "@mui/system";
 import { Container, Typography } from "@mui/material";
 
-// Container to center content
 export const StyledContainer = styled(Container)({
   display: "flex",
   justifyContent: "center",
@@ -9,7 +8,6 @@ export const StyledContainer = styled(Container)({
   height: "100vh",
 });
 
-// Form container with a max-width for centering the content
 export const StyledForm = styled("form")({
   display: "flex",
   flexDirection: "column",
@@ -21,7 +19,6 @@ export const StyledForm = styled("form")({
   backgroundColor: "#fff",
 });
 
-// Title for the form
 export const StyledTitle = styled(Typography)({
   textAlign: "center",
   marginBottom: "20px",

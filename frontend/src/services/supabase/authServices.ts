@@ -26,7 +26,7 @@ export const handleSignIn = async (
   const { user, error } = await signIn(email, password);
 
   if (error) {
-    console.error("Sign In Error:", error.message);
+    // console.error("Sign In Error:", error.message);
     return { user: null, error };
   }
 
@@ -37,7 +37,7 @@ export const handleLogOut = async (): Promise<LogoutResponse> => {
   const { error } = await logOut();
 
   if (error) {
-    console.error("Logout Error:", error.message);
+    // console.error("Logout Error:", error.message);
   }
 
   return { error };
@@ -47,7 +47,7 @@ export const handleGetSession = async (): Promise<SessionResponse> => {
   const { session, error } = await getSession();
 
   if (error) {
-    console.error("Get Session Error:", error.message);
+    // console.error("Get Session Error:", error.message);
   }
 
   return { session, error };

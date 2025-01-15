@@ -38,7 +38,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     const response = await handleSignUp(email, password);
     if (response.error) {
       set({ loading: false, user: null });
-      console.error("Sign Up Error:", response.error.message);
+      // console.error("Sign Up Error:", response.error.message);
     } else {
       set({ user: response.user, loading: false });
     }
@@ -50,7 +50,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     const response = await handleSignIn(email, password);
     if (response.error) {
       set({ loading: false });
-      console.error("Sign In Error:", response.error.message);
+      // console.error("Sign In Error:", response.error.message);
     } else {
       set({ user: response.user, loading: false });
     }
@@ -62,7 +62,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     const response = await handleLogOut();
     if (response.error) {
       set({ loading: false });
-      console.error("Logout Error:", response.error.message);
+      // console.error("Logout Error:", response.error.message);
     } else {
       const clearTreeData = useTreeStore.getState().clearData;
       clearTreeData();
@@ -76,7 +76,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     const response = await handleGetSession();
     if (response.error) {
       set({ loading: false });
-      console.error("Get Session Error:", response.error.message);
+      // console.error("Get Session Error:", response.error.message);
     } else {
       set({ user: response.session?.user || null, loading: false });
     }

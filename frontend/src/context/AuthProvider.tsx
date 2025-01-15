@@ -1,4 +1,4 @@
-import React, { useEffect, useState, ReactNode } from "react";
+import { useEffect, useState, ReactNode } from "react";
 import { supabase } from "../api/supabase/supabase";
 import { useAuthStore } from "../store/useAuthStore";
 import { AuthContext } from "./AuthContext";
@@ -15,8 +15,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (error) throw error;
 
         setUser(data?.session?.user || null);
-      } catch (error) {
-        console.error("Error fetching session:", error);
+      } catch {
+        // console.error("Error fetching session:", error);
       } finally {
         setLocalLoading(false);
         setStoreLoading(false);

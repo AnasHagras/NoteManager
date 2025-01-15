@@ -85,7 +85,7 @@ export const useTreeStore = create<TreeState>()(
         if (result.success) {
           retrieved_node = convertSupabaseNodeToTreeNode(result.data || {});
         } else {
-          console.error("Error adding new node:", result.error);
+          // console.error("Error adding new node:", result.error);
           return result;
         }
 
@@ -116,7 +116,7 @@ export const useTreeStore = create<TreeState>()(
         if (result.success) {
           // console.log("Node removed:", result.data);
         } else {
-          console.error("Error removing node:", result.error);
+          // console.error("Error removing node:", result.error);
           return result;
         }
 
@@ -148,7 +148,7 @@ export const useTreeStore = create<TreeState>()(
         if (result.success) {
           // console.log("Node updated:", result.data);
         } else {
-          console.error("Error updating node:", result.error);
+          // console.error("Error updating node:", result.error);
           return result;
         }
 

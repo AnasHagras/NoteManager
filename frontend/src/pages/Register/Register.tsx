@@ -28,7 +28,7 @@ const Register = () => {
         toast.error("User already exists", defaultToastOptions);
       }
 
-      console.log("Register successful response: ", response);
+      // console.log("Register successful response: ", response);
     }
   };
 
